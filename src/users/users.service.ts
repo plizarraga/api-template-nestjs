@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -11,46 +11,58 @@ export class UsersService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       return await this.userRepository.save(createUserDto);
     } catch (error) {
-      throw new Error(error);
+      throw new Error('Could not create user: ' + error.message);
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<User[]> {
     try {
       return await this.userRepository.find();
     } catch (error) {
-      throw new Error(error);
+      throw new Error('Could not fetch users: ' + error.message);
     }
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<User> {
     try {
-      return await this.userRepository
+      const user = await this.userRepository
         .createQueryBuilder('user')
         .where({ id })
         .getOne();
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
     } catch (error) {
-      throw new Error(error);
+      throw new Error('Could not fetch user: ' + error.message);
     }
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
     try {
-      return await this.userRepository.update(id, updateUserDto);
+      const result = await this.userRepository.update(id, updateUserDto);
+      if (result.affected === 0) {
+        throw new NotFoundException('User not found');
+      }
+      return result;
     } catch (error) {
-      throw new Error(error);
+      throw new Error('Could not update user: ' + error.message);
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number): Promise<any> {
     try {
-      return await this.userRepository.delete(id);
+      const result = await this.userRepository.delete(id);
+      if (result.affected === 0) {
+        throw new NotFoundException('User not found');
+      }
+      return result;
     } catch (error) {
-      throw new Error(error);
+      throw new Error('Could not delete user: ' + error.message);
     }
   }
 }
