@@ -22,6 +22,7 @@ async function bootstrap() {
   app.enableCors(CORS);
   app.setGlobalPrefix('api');
 
+  // Enabled swagger documentation
   const config = new DocumentBuilder()
     .addBearerAuth()
     .setTitle('NesJS RESTful API Template')

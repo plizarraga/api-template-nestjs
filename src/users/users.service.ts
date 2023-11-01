@@ -29,10 +29,7 @@ export class UsersService {
 
   async findOne(id: string): Promise<User> {
     try {
-      const user = await this.userRepository
-        .createQueryBuilder('user')
-        .where({ id })
-        .getOne();
+      const user = await this.userRepository.findOneBy({ id });
       if (!user) {
         throw new NotFoundException('User not found');
       }
